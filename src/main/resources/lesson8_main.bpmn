@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0j4x6ky" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.2.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.17.0">
+  <bpmn:process id="Lesson8MainProcess" name="Основной процесс 8-го урока" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_0drq6vr</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="set_main_process_variables" name="Установить переменные основного процесса" camunda:asyncBefore="true">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:outputParameter name="переменная_основного_процесса_1">Куда подевался Гонзало Лира?</camunda:outputParameter>
+          <camunda:outputParameter name="переменная_основного_процесса_2">Куда подевался Джулиан Ассанж?</camunda:outputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0drq6vr</bpmn:incoming>
+      <bpmn:outgoing>Flow_156vbkc</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0drq6vr" sourceRef="StartEvent_1" targetRef="set_main_process_variables" />
+    <bpmn:sequenceFlow id="Flow_156vbkc" sourceRef="set_main_process_variables" targetRef="call_activity" />
+    <bpmn:endEvent id="Event_1v2pkg4">
+      <bpmn:incoming>Flow_09k7ilc</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_09k7ilc" sourceRef="call_activity" targetRef="Event_1v2pkg4" />
+    <bpmn:callActivity id="call_activity" name="Вызов подпроцесса" camunda:asyncBefore="true" calledElement="Lesson8SubProcess">
+      <bpmn:extensionElements>
+        <camunda:in source="переменная_основного_процесса_1" target="переменная_основного_процесса_1" />
+        <camunda:out source="переменная_подпроцесса_1" target="переменная_подпроцесса_1" />
+        <camunda:in sourceExpression="&#39;Привет из основного процесса&#39;" target="константа_основного_процесса" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_156vbkc</bpmn:incoming>
+      <bpmn:outgoing>Flow_09k7ilc</bpmn:outgoing>
+    </bpmn:callActivity>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Lesson8MainProcess">
+      <bpmndi:BPMNEdge id="Flow_0drq6vr_di" bpmnElement="Flow_0drq6vr">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="270" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_156vbkc_di" bpmnElement="Flow_156vbkc">
+        <di:waypoint x="370" y="117" />
+        <di:waypoint x="430" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09k7ilc_di" bpmnElement="Flow_09k7ilc">
+        <di:waypoint x="530" y="117" />
+        <di:waypoint x="592" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0cmm6pa_di" bpmnElement="set_main_process_variables">
+        <dc:Bounds x="270" y="77" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1v2pkg4_di" bpmnElement="Event_1v2pkg4">
+        <dc:Bounds x="592" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0m8gg97_di" bpmnElement="call_activity">
+        <dc:Bounds x="430" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
