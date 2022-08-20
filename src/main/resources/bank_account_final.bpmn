@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1xfh0in" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.2.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.17.0">
+  <bpmn:process id="bank_account" name="Открытие счета после одобрения" isExecutable="true">
+    <bpmn:startEvent id="start" camunda:asyncBefore="true">
+      <bpmn:extensionElements>
+        <camunda:formData />
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_13xpo0u</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_13xpo0u" sourceRef="start" targetRef="open_bank_account" />
+    <bpmn:sequenceFlow id="Flow_018cdpg" sourceRef="open_bank_account" targetRef="deposit_money" />
+    <bpmn:intermediateCatchEvent id="break" name="Пауза 20 сек" camunda:asyncBefore="true">
+      <bpmn:incoming>which_delegate_opening_gateway_to_break</bpmn:incoming>
+      <bpmn:outgoing>Flow_1l9lpfz</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_1y1oanm">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT20S</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="end" camunda:asyncBefore="true">
+      <bpmn:incoming>Flow_0jfafb9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0jfafb9" sourceRef="send_generated_statistics_feign" targetRef="end" />
+    <bpmn:sequenceFlow id="Flow_1l9lpfz" sourceRef="break" targetRef="merch_emailsender" />
+    <bpmn:sendTask id="send_generated_statistics_feign" name="Отправляем отчет по статистике" camunda:asyncBefore="true" camunda:delegateExpression="{#send_generated_statistics_feign}">
+      <bpmn:extensionElements />
+      <bpmn:incoming>Flow_1g6j858</bpmn:incoming>
+      <bpmn:incoming>Flow_01r83y1</bpmn:incoming>
+      <bpmn:outgoing>Flow_0jfafb9</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:intermediateThrowEvent id="emailsender_event" name="Отправляем письмо клиенту" camunda:asyncBefore="true">
+      <bpmn:incoming>which_delegate_opening_gateway_to_emailsender_event</bpmn:incoming>
+      <bpmn:outgoing>Flow_1g6j858</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1ahhqiv" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="Flow_1g6j858" sourceRef="emailsender_event" targetRef="send_generated_statistics_feign" />
+    <bpmn:sequenceFlow id="Flow_01r83y1" sourceRef="merch_emailsender" targetRef="send_generated_statistics_feign" />
+    <bpmn:exclusiveGateway id="which_delegate_opening_gateway" name="Какой делегат выполнить?" camunda:asyncBefore="true" default="which_delegate_opening_gateway_to_break">
+      <bpmn:incoming>Flow_0uj40rh</bpmn:incoming>
+      <bpmn:outgoing>which_delegate_opening_gateway_to_emailsender_event</bpmn:outgoing>
+      <bpmn:outgoing>which_delegate_opening_gateway_to_break</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="which_delegate_opening_gateway_to_emailsender_event" sourceRef="which_delegate_opening_gateway" targetRef="emailsender_event">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${gateway_var}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="which_delegate_opening_gateway_to_break" sourceRef="which_delegate_opening_gateway" targetRef="break" />
+    <bpmn:sequenceFlow id="Flow_0uj40rh" sourceRef="catch_event_from_queue" targetRef="which_delegate_opening_gateway" />
+    <bpmn:serviceTask id="deposit_money" name="Зачислить сумму" camunda:asyncBefore="true" camunda:delegateExpression="#{deposit_money}">
+      <bpmn:incoming>Flow_018cdpg</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="open_bank_account" name="Открыть счет" camunda:asyncBefore="true" camunda:delegateExpression="#{open_bank_account}">
+      <bpmn:incoming>Flow_13xpo0u</bpmn:incoming>
+      <bpmn:outgoing>Flow_018cdpg</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="merch_emailsender" name="Дарим мерч и отправляем письмо" camunda:asyncBefore="true" camunda:delegateExpression="#{merch_emailsender}">
+      <bpmn:incoming>Flow_1l9lpfz</bpmn:incoming>
+      <bpmn:outgoing>Flow_01r83y1</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:boundaryEvent id="catch_event_from_queue" camunda:asyncBefore="true" attachedToRef="deposit_money">
+      <bpmn:outgoing>Flow_0uj40rh</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0mfsghv" />
+    </bpmn:boundaryEvent>
+  </bpmn:process>
+  <bpmn:message id="Message_1o2hmi8" name="catch_event" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="bank_account">
+      <bpmndi:BPMNEdge id="Flow_0uj40rh_di" bpmnElement="Flow_0uj40rh">
+        <di:waypoint x="488" y="150" />
+        <di:waypoint x="525" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1924kyg_di" bpmnElement="which_delegate_opening_gateway_to_break">
+        <di:waypoint x="550" y="175" />
+        <di:waypoint x="550" y="230" />
+        <di:waypoint x="642" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02kax55_di" bpmnElement="which_delegate_opening_gateway_to_emailsender_event">
+        <di:waypoint x="550" y="125" />
+        <di:waypoint x="550" y="60" />
+        <di:waypoint x="732" y="60" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_01r83y1_di" bpmnElement="Flow_01r83y1">
+        <di:waypoint x="820" y="230" />
+        <di:waypoint x="860" y="230" />
+        <di:waypoint x="860" y="150" />
+        <di:waypoint x="920" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1g6j858_di" bpmnElement="Flow_1g6j858">
+        <di:waypoint x="768" y="60" />
+        <di:waypoint x="860" y="60" />
+        <di:waypoint x="860" y="150" />
+        <di:waypoint x="920" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1l9lpfz_di" bpmnElement="Flow_1l9lpfz">
+        <di:waypoint x="678" y="230" />
+        <di:waypoint x="720" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0jfafb9_di" bpmnElement="Flow_0jfafb9">
+        <di:waypoint x="1020" y="150" />
+        <di:waypoint x="1052" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_018cdpg_di" bpmnElement="Flow_018cdpg">
+        <di:waypoint x="320" y="150" />
+        <di:waypoint x="370" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13xpo0u_di" bpmnElement="Flow_13xpo0u">
+        <di:waypoint x="188" y="150" />
+        <di:waypoint x="220" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="start">
+        <dc:Bounds x="152" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1jtzg53_di" bpmnElement="break">
+        <dc:Bounds x="642" y="212" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="628" y="255" width="66" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1ys3ew4_di" bpmnElement="end">
+        <dc:Bounds x="1052" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1n694ze_di" bpmnElement="send_generated_statistics_feign">
+        <dc:Bounds x="920" y="110" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1qlgy9p_di" bpmnElement="emailsender_event">
+        <dc:Bounds x="732" y="42" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="710" y="85" width="81" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1bhid2k_di" bpmnElement="deposit_money">
+        <dc:Bounds x="370" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1461vj1_di" bpmnElement="open_bank_account">
+        <dc:Bounds x="220" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0c05j0o_di" bpmnElement="merch_emailsender">
+        <dc:Bounds x="720" y="190" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_01xl1rp_di" bpmnElement="which_delegate_opening_gateway" isMarkerVisible="true">
+        <dc:Bounds x="525" y="125" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="553" y="169" width="73" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1o452r3_di" bpmnElement="catch_event_from_queue">
+        <dc:Bounds x="452" y="132" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="498" y="136" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
