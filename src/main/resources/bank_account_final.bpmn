@@ -20,7 +20,7 @@
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_0jfafb9" sourceRef="send_generated_statistics_feign" targetRef="end" />
     <bpmn:sequenceFlow id="Flow_1l9lpfz" sourceRef="break" targetRef="merch_emailsender" />
-    <bpmn:sendTask id="send_generated_statistics_feign" name="Отправляем отчет по статистике" camunda:asyncBefore="true" camunda:delegateExpression="{#send_generated_statistics_feign}">
+    <bpmn:sendTask id="send_generated_statistics_feign" name="Отправляем отчет по статистике" camunda:asyncBefore="true" camunda:delegateExpression="#{send_generated_statistics_feign}">
       <bpmn:extensionElements />
       <bpmn:incoming>Flow_1g6j858</bpmn:incoming>
       <bpmn:incoming>Flow_01r83y1</bpmn:incoming>
@@ -52,6 +52,7 @@
       <bpmn:outgoing>Flow_07zmlxo</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:sendTask id="merch_emailsender" name="Дарим мерч и отправляем письмо" camunda:asyncBefore="true" camunda:delegateExpression="#{merch_emailsender}">
+      <bpmn:extensionElements />
       <bpmn:incoming>Flow_1l9lpfz</bpmn:incoming>
       <bpmn:outgoing>Flow_01r83y1</bpmn:outgoing>
     </bpmn:sendTask>
