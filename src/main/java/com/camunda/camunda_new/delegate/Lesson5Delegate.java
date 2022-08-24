@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 public class Lesson5Delegate implements JavaDelegate {
     @Override
     public void execute(DelegateExecution delEx) throws Exception {
+        
         final String procVar1 = (String) delEx.getVariable("параметр1");
         System.out.println(String.format("Lesson5Delegate.execute, procVar1='%s'", procVar1));
     }

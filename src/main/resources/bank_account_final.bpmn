@@ -8,11 +8,11 @@
       <bpmn:outgoing>Flow_13xpo0u</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="Flow_13xpo0u" sourceRef="start" targetRef="open_bank_account" />
-    <bpmn:intermediateCatchEvent id="break" name="Пауза 20 сек" camunda:asyncBefore="true">
+    <bpmn:intermediateCatchEvent id="break" name="Пауза 3 сек" camunda:asyncBefore="true">
       <bpmn:incoming>which_delegate_opening_gateway_to_break</bpmn:incoming>
       <bpmn:outgoing>Flow_1l9lpfz</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_1y1oanm">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT20S</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT3S</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
     <bpmn:endEvent id="end" camunda:asyncBefore="true">
@@ -20,16 +20,10 @@
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_0jfafb9" sourceRef="send_generated_statistics_feign" targetRef="end" />
     <bpmn:sequenceFlow id="Flow_1l9lpfz" sourceRef="break" targetRef="merch_emailsender" />
-    <bpmn:sendTask id="send_generated_statistics_feign" name="Отправляем отчет по статистике" camunda:asyncBefore="true" camunda:delegateExpression="#{send_generated_statistics_feign}">
-      <bpmn:extensionElements />
-      <bpmn:incoming>Flow_1g6j858</bpmn:incoming>
-      <bpmn:incoming>Flow_01r83y1</bpmn:incoming>
-      <bpmn:outgoing>Flow_0jfafb9</bpmn:outgoing>
-    </bpmn:sendTask>
     <bpmn:intermediateThrowEvent id="emailsender_event" name="Отправляем письмо клиенту" camunda:asyncBefore="true">
       <bpmn:incoming>which_delegate_opening_gateway_to_emailsender_event</bpmn:incoming>
       <bpmn:outgoing>Flow_1g6j858</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="MessageEventDefinition_1ahhqiv" />
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1ahhqiv" camunda:delegateExpression="#{throw_email}" />
     </bpmn:intermediateThrowEvent>
     <bpmn:sequenceFlow id="Flow_1g6j858" sourceRef="emailsender_event" targetRef="send_generated_statistics_feign" />
     <bpmn:sequenceFlow id="Flow_01r83y1" sourceRef="merch_emailsender" targetRef="send_generated_statistics_feign" />
@@ -39,7 +33,7 @@
       <bpmn:outgoing>which_delegate_opening_gateway_to_break</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="which_delegate_opening_gateway_to_emailsender_event" name="Да" sourceRef="which_delegate_opening_gateway" targetRef="emailsender_event">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${gateway_var}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${isDelay}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="which_delegate_opening_gateway_to_break" name="Нет" sourceRef="which_delegate_opening_gateway" targetRef="break" />
     <bpmn:sequenceFlow id="Flow_0uj40rh" sourceRef="catch_event_from_queue" targetRef="which_delegate_opening_gateway" />
@@ -51,11 +45,6 @@
       <bpmn:incoming>Flow_13xpo0u</bpmn:incoming>
       <bpmn:outgoing>Flow_07zmlxo</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:sendTask id="merch_emailsender" name="Дарим мерч и отправляем письмо" camunda:asyncBefore="true" camunda:delegateExpression="#{merch_emailsender}">
-      <bpmn:extensionElements />
-      <bpmn:incoming>Flow_1l9lpfz</bpmn:incoming>
-      <bpmn:outgoing>Flow_01r83y1</bpmn:outgoing>
-    </bpmn:sendTask>
     <bpmn:sequenceFlow id="Flow_07zmlxo" sourceRef="open_bank_account" targetRef="deposit_money" />
     <bpmn:intermediateCatchEvent id="catch_event_from_queue" name="Ловим событие из очереди" camunda:asyncBefore="true">
       <bpmn:incoming>Flow_0whuujf</bpmn:incoming>
@@ -63,6 +52,15 @@
       <bpmn:messageEventDefinition id="MessageEventDefinition_0bg0lil" messageRef="Message_1o2hmi8" />
     </bpmn:intermediateCatchEvent>
     <bpmn:sequenceFlow id="Flow_0whuujf" sourceRef="deposit_money" targetRef="catch_event_from_queue" />
+    <bpmn:serviceTask id="merch_emailsender" name="Дарим мерч и отправляем письмо" camunda:asyncBefore="true" camunda:delegateExpression="#{merch_emailsender}">
+      <bpmn:incoming>Flow_1l9lpfz</bpmn:incoming>
+      <bpmn:outgoing>Flow_01r83y1</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="send_generated_statistics_feign" name="Отправляем отчет по статистике" camunda:asyncBefore="true" camunda:delegateExpression="#{send_generated_statistics_feign}">
+      <bpmn:incoming>Flow_1g6j858</bpmn:incoming>
+      <bpmn:incoming>Flow_01r83y1</bpmn:incoming>
+      <bpmn:outgoing>Flow_0jfafb9</bpmn:outgoing>
+    </bpmn:serviceTask>
   </bpmn:process>
   <bpmn:message id="Message_1o2hmi8" name="catch_event" />
   <bpmn:message id="Message_3qh7qam" name="Message_3qh7qam" />
@@ -127,15 +125,11 @@
       <bpmndi:BPMNShape id="Event_1jtzg53_di" bpmnElement="break">
         <dc:Bounds x="642" y="212" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="628" y="255" width="66" height="14" />
+          <dc:Bounds x="631" y="255" width="60" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1ys3ew4_di" bpmnElement="end">
         <dc:Bounds x="1052" y="132" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1n694ze_di" bpmnElement="send_generated_statistics_feign">
-        <dc:Bounds x="920" y="110" width="100" height="80" />
-        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1qlgy9p_di" bpmnElement="emailsender_event">
         <dc:Bounds x="732" y="42" width="36" height="36" />
@@ -156,15 +150,17 @@
         <dc:Bounds x="220" y="110" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0c05j0o_di" bpmnElement="merch_emailsender">
-        <dc:Bounds x="720" y="190" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0cl5j1q_di" bpmnElement="catch_event_from_queue">
         <dc:Bounds x="472" y="132" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="450" y="175" width="80" height="27" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1kg0do6_di" bpmnElement="merch_emailsender">
+        <dc:Bounds x="720" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0l9h6uy_di" bpmnElement="send_generated_statistics_feign">
+        <dc:Bounds x="920" y="110" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
