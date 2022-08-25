@@ -88,6 +88,9 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-stream</artifactId>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework/spring-web -->
+
+
     </dependencies>
 
 
