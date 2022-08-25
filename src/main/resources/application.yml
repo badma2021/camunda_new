@@ -7,3 +7,15 @@ camunda.bpm:
    create: All tasks
 server:
   port: 8081
+
+spring:
+  cloud:
+    function:
+      definition: producer
+    stream:
+      kafka:
+        bindings:
+          saveToAccountStorage-in-0:
+            destination: saveBankAccountTopic
+        binder:
+          brokers: localhost:9092
