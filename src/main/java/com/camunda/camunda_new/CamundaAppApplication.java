@@ -3,9 +3,14 @@ package com.camunda.camunda_new;
 import org.camunda.bpm.spring.boot.starter.annotation.EnableProcessApplication;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.messaging.Message;
+
+import java.util.function.Supplier;
 
 @SpringBootApplication
 @EnableProcessApplication
+
 public class CamundaAppApplication {
 
     public static void main(String... args) {

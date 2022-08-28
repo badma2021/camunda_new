@@ -10,12 +10,10 @@ server:
 
 spring:
   cloud:
-    function:
-      definition: producer
     stream:
       kafka:
         bindings:
-          saveToAccountStorage-in-0:
+          takeFromBankAccountQueue-in-0:
             destination: saveBankAccountTopic
         binder:
           brokers: localhost:9092

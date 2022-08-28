@@ -26,17 +26,32 @@ public class DepositMoneyDelegate implements JavaDelegate {
 
     @Override
     @Transactional
-    //  @Scheduled(cron = "*/2 * * * * *")
+    // @Scheduled(cron = "*/2 * * * * *")
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
         System.out.println("DepositMoneyDelegate");
         BankAccountProcessDto bankAccountProcessDto = generateBankAccount();
         bankAccountProcessDto.setProcessInstanceId(delegateExecution.getProcessInstanceId());
-
         Message<Object> message = wrapperForMessage(
                 bankAccountProcessDto);
-        System.out.println(message);
-        streamBridge.send("saveToAccountStorage-in-0", message);
+        Thread.sleep(5000);
+        streamBridge.send("takeFromBankAccountQueue-in-0", message);
+        System.out.println("message is sent:"+message);
+//        Thread.sleep(5000);
+//        BankAccountProcessDto bankAccountProcessDto1 = generateBankAccount();
+//        bankAccountProcessDto1.setProcessInstanceId(delegateExecution.getProcessInstanceId());
+//        Message<Object> message1 = wrapperForMessage(
+//                bankAccountProcessDto1);
+//        streamBridge.send("takeFromBankAccountQueue-in-0", message1);
+//        System.out.println("message is sent:"+message1);
+//        Thread.sleep(5000);
+//        BankAccountProcessDto bankAccountProcessDto2 = generateBankAccount();
+//        bankAccountProcessDto2.setProcessInstanceId(delegateExecution.getProcessInstanceId());
+//        Message<Object> message2 = wrapperForMessage(
+//                bankAccountProcessDto2);
+//
+//      streamBridge.send("takeFromBankAccountQueue-in-0", message2);
+//       System.out.println("message is sent:"+message2);
     }
 
     public BankAccountProcessDto generateBankAccount() {
@@ -46,7 +61,7 @@ public class DepositMoneyDelegate implements JavaDelegate {
         i = rnd.nextInt(1_000_000_000)
                 + (rnd.nextInt(90) + 10) * 1_000_000_000L;
         j = rnd.nextInt(5);
-        return new BankAccountProcessDto(i, j, OffsetDateTime.now(),"",false);
+        return new BankAccountProcessDto(i, j, OffsetDateTime.now(), "", false);
     }
 
     private Message<Object> wrapperForMessage(Object payload) {
@@ -54,23 +69,3 @@ public class DepositMoneyDelegate implements JavaDelegate {
     }
 }
 
-//        HistoryService historyService = delegateExecution.getProcessEngineServices().getHistoryService();
-//        HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery().
-//                processInstanceId(delegateExecution.getProcessInstanceId()).singleResult();
-      //  RestTemplate restTemplate = new RestTemplate();
-//
-//        JSONObject processVariables = new JSONObject();
-//        processVariables.put("value", "true");
-//        processVariables.put("type", "Boolean");
-//        JSONObject map = new JSONObject();
-//        map.put("messageName", "catch_event");
-//        map.put("processInstanceId", historicProcessInstance.getRootProcessInstanceId());
-//        map.put("processVariables", String.valueOf(processVariables));
-//        System.out.println(processVariables);
-//        System.out.println(map);
-//        boolean resp = restTemplate.postForEntity(
-//                "http://localhost:8081/engine-rest/message",
-//                map,
-//                Void.class).getStatusCode().is2xxSuccessful();
-//    }
-//            }
